@@ -34,3 +34,16 @@ export const posts = createTable(
     nameIndex: index("name_idx").on(example.name),
   })
 );
+
+export const kernScores = createTable(
+  "kern_score",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    title: varchar("title", { length: 256 }).notNull(),
+    // 2 million because our largest kern file in the db approaches that
+    kernData: varchar("kern_data", { length: 2000000 }).notNull(),
+  },
+  (table) => ({
+    titleIndex: index("title_idx").on(table.title),
+  })
+);
