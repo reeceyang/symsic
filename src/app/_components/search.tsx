@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
 import { api } from "@/trpc/react";
+import { patternToMEI } from "@/common/meiToRegex";
 
 export function Search() {
   const [input, setInput] = useState("");
@@ -18,6 +18,12 @@ export function Search() {
         onSubmit={(e) => {
           e.preventDefault();
           setMeiText(input);
+          const s = new XMLSerializer();
+          // const str = s.serializeToString(getPattern(input));
+          const str = `<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="3.0.0" xmlns:query="http://www.matangover.com/musicquery">` + patternToMEI(input).html() + `</mei>`;
+          console.log(str);
+          const svg = window.tk.renderData(str, {});
+          document.getElementById("notation").innerHTML = svg;
         }}
         className="flex flex-row gap-2"
       >
