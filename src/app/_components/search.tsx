@@ -4,13 +4,16 @@ import { useState } from "react";
 
 import { api } from "@/trpc/react";
 
-export function LatestPost() {
+export function Search() {
   const [input, setInput] = useState("");
   const [meiText, setMeiText] = useState(``);
-  const { data, status } = api.search.search.useQuery({ meiText }, { enabled: Boolean(meiText) });
+  const { data } = api.search.search.useQuery(
+    { meiText },
+    { enabled: Boolean(meiText) },
+  );
 
   return (
-    <div className="w-full max-w-md flex flex-col gap-6">
+    <div className="flex w-full max-w-md flex-col gap-6">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -34,9 +37,15 @@ export function LatestPost() {
       </form>
       <div className="flex flex-col gap-6">
         <p>{data?.length ?? 0} results.</p>
-        {data?.length && data.map(
-          (score) => <div className="rounded-md bg-white/10 backdrop-blur-md p-3"><p>{score.title}</p></div>
-        )}
+        {data?.length &&
+          data.map((score, i) => (
+            <div
+              className="rounded-md bg-white/10 p-3 backdrop-blur-md"
+              key={i}
+            >
+              <p>{score.title}</p>
+            </div>
+          ))}
       </div>
     </div>
   );

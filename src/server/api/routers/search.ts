@@ -10,70 +10,78 @@ import { PATTERN_TEMPLATE } from "patternTemplate";
 const getPattern = (patternContent: string) => {
   const fullPattern = PATTERN_TEMPLATE.replace("PATTERN", patternContent);
   return convertToMEI(fullPattern);
-}
+};
 
 const convertToMEI = (patternText: string) => {
   const $ = cheerio.load(patternText, { xml: true });
   const pattern = $(patternText);
-  pattern.find('note').each(function (index, _note) {
+  pattern.find("note").each(function (index, _note) {
     const note = $(_note);
-    if (note.attr('query:any-duration') === 'true') {
-      note.attr('stem.visible', 'false');
-      if (note.attr('dur') === undefined) {
-        note.attr('dur', '4');
+    if (note.attr("query:any-duration") === "true") {
+      note.attr("stem.visible", "false");
+      if (note.attr("dur") === undefined) {
+        note.attr("dur", "4");
       }
     }
-    if (note.attr('query:any-pitch') === 'true') {
-      note.attr('artic', 'ten');
-      if (note.attr('pname') === undefined && note.attr('oct') === undefined) {
-        note.attr('pname', 'c');
-        note.attr('oct', '5');
+    if (note.attr("query:any-pitch") === "true") {
+      note.attr("artic", "ten");
+      if (note.attr("pname") === undefined && note.attr("oct") === undefined) {
+        note.attr("pname", "c");
+        note.attr("oct", "5");
       }
     }
-    if (note.attr('query:any-accidental') === 'true') {
-      note.attr('accid', '1qs');
+    if (note.attr("query:any-accidental") === "true") {
+      note.attr("accid", "1qs");
     }
   });
-  pattern.find('query\\:or').each(function (index, _or) {
+  pattern.find("query\\:or").each(function (index, _or) {
     const or = $(_or);
-    const orNote = $('<note type="or" pname="f" dur="4" oct="4" stem.len="6" />');
+    const orNote = $(
+      '<note type="or" pname="f" dur="4" oct="4" stem.len="6" />',
+    );
     or.replaceWith(orNote);
   });
-  pattern.find('query\\:group').each(function (index, _group) {
+  pattern.find("query\\:group").each(function (index, _group) {
     const group = $(_group);
     const tuplet = $('<tuplet num="1" numbase="1" num.format="ratio" />');
     //  bracket.visible="false"
-    tuplet.attr('xml:id', 'group' + index);
+    tuplet.attr("xml:id", "group" + index);
     tuplet.append(group.children());
-    const min = group.attr('min-occurrences');
-    const max = group.attr('max-occurrences');
+    const min = group.attr("min-occurrences");
+    const max = group.attr("max-occurrences");
     if (min === undefined && max === undefined) {
-      tuplet.attr('num.visible', 'false');
+      tuplet.attr("num.visible", "false");
     } else {
-      tuplet.attr('type', 'quantifier');
+      tuplet.attr("type", "quantifier");
       const quantifier = (() => {
-        if (min === '0' && max === '1') {
-          return '?';
-        } else if (min === '1' && max === undefined) {
-          return '+';
+        if (min === "0" && max === "1") {
+          return "?";
+        } else if (min === "1" && max === undefined) {
+          return "+";
         } else {
-          if (!(min === '0' && max === undefined)) {
-            console.log('Quantifiers {' + min + ', ' + max + '} not supported.' +
-              'Using "zero or more" instead.');
+          if (!(min === "0" && max === undefined)) {
+            console.log(
+              "Quantifiers {" +
+                min +
+                ", " +
+                max +
+                "} not supported." +
+                'Using "zero or more" instead.',
+            );
           }
-          return '*';
-       }
+          return "*";
+        }
       })();
-      tuplet.attr('quantifier', quantifier);
+      tuplet.attr("quantifier", quantifier);
     }
-    tuplet.attr('bracket.visible', group.attr('bracket.visible'));
+    tuplet.attr("bracket.visible", group.attr("bracket.visible"));
     group.replaceWith(tuplet);
   });
   if (pattern[0] === undefined) {
-    throw new Error('Pattern is empty.');
+    throw new Error("Pattern is empty.");
   }
   return pattern[0];
-}
+};
 
 const meiToRegex = (input: string) => {
   const meiText = getPattern(input);
