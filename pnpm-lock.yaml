@@ -29,6 +29,9 @@ dependencies:
   cheerio:
     specifier: ^1.0.0
     version: 1.0.0
+  domhandler:
+    specifier: ^5.0.3
+    version: 5.0.3
   dotenv:
     specifier: ^16.4.5
     version: 16.4.5

@@ -29,6 +29,7 @@
     "@trpc/server": "^11.0.0-rc.446",
     "@vercel/postgres": "^0.10.0",
     "cheerio": "^1.0.0",
+    "domhandler": "^5.0.3",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
     "fast-xml-parser": "^4.5.0",
