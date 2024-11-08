@@ -24,7 +24,7 @@ export const searchRouter = createTRPCRouter({
           .from(kernScores)
       );
 
-      // grab results that match more than once
+      // grab results that match
       const results = await ctx.db
         .with(matchesSubquery)
         .select()
