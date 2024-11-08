@@ -5,46 +5,39 @@ import { useState } from "react";
 import { api } from "@/trpc/react";
 
 export function LatestPost() {
-  const [latestPost] = api.post.getLatest.useSuspenseQuery();
-
-  const utils = api.useUtils();
-  const [name, setName] = useState("");
-  const createPost = api.post.create.useMutation({
-    onSuccess: async () => {
-      await utils.post.invalidate();
-      setName("");
-    },
-  });
+  const [input, setInput] = useState("");
+  const [meiText, setMeiText] = useState(``);
+  const { data, status } = api.search.search.useQuery({ meiText }, { enabled: Boolean(meiText) });
 
   return (
-    <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
+    <div className="w-full max-w-md flex flex-col gap-6">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          createPost.mutate({ name });
+          setMeiText(input);
         }}
-        className="flex flex-col gap-2"
+        className="flex flex-row gap-2"
       >
         <input
           type="text"
-          placeholder="Title"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="MEI"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           className="w-full rounded-full px-4 py-2 text-black"
         />
         <button
           type="submit"
           className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-          disabled={createPost.isPending}
         >
-          {createPost.isPending ? "Submitting..." : "Submit"}
+          Search
         </button>
       </form>
+      <div className="flex flex-col gap-6">
+        <p>{data?.length ?? 0} results.</p>
+        {data?.length && data.map(
+          (score) => <div className="rounded-md bg-white/10 backdrop-blur-md p-3"><p>{score.title}</p></div>
+        )}
+      </div>
     </div>
   );
 }
