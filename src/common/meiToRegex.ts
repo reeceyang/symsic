@@ -13,8 +13,8 @@ const getPattern = (patternContent: string) => {
 
 export const patternToMEI = (patternContent: string) => {
   const fullPattern = PATTERN_TEMPLATE.replace("PATTERN", patternContent);
-  return convertToMEI(fullPattern);
-}
+  return `<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="3.0.0" xmlns:query="http://www.matangover.com/musicquery">${convertToMEI(fullPattern).html()}</mei>`;
+};
 
 const convertToMEI = (patternText: string) => {
   const $ = cheerio.load(patternText, { xml: true });
@@ -81,7 +81,7 @@ const convertToMEI = (patternText: string) => {
     tuplet.attr("bracket.visible", group.attr("bracket.visible"));
     group.replaceWith(tuplet);
   });
-  
+
   return pattern;
 };
 

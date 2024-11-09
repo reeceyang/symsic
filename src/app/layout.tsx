@@ -19,10 +19,9 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <head>
         <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
-        <script src="./createVerovioToolkit.js"></script>
+        <script src="./createVerovioToolkit.js" defer></script>
       </head>
       <body>
-        <div id="notation"></div>
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
