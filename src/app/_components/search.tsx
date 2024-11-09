@@ -75,7 +75,7 @@ export function Search() {
               >
                 <p>{score.title}</p>
                 <p className="ml-auto">
-                  {score.numMatches} match{score.numMatches !== 1 && "es"}
+                  {score.matchCount} match{score.matchCount !== 1 && "es"}
                 </p>
               </div>
             ))
