@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <head>
-        <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
+        <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-hum.js" defer></script>
         <script src="./createVerovioToolkit.js" defer></script>
       </head>
       <body>

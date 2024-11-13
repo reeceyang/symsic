@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { FC } from "react";
 import { api } from "@/trpc/react";
 import { patternToMEI } from "@/common/meiToRegex";
 import { Checkbox, Field, Label } from "@headlessui/react";
@@ -11,7 +12,10 @@ const DEFAULT_INPUT = `<beam>
     <note dur="8" query:any-pitch="true" />
 </beam>`;
 
-export function Search() {
+export const Search: FC<{
+  setSelectedScoreId: (id: number | null) => void;
+  selectedScoreId: number | null;
+}> = ({ setSelectedScoreId, selectedScoreId }) => {
   const [input, setInput] = useState(DEFAULT_INPUT);
   const [meiText, setMeiText] = useState(``);
   const { data } = api.search.search.useQuery(
@@ -93,8 +97,9 @@ export function Search() {
         {data?.length
           ? data.map((score, i) => (
               <div
-                className="flex flex-row rounded-md bg-white/10 p-3 backdrop-blur-md"
+                className={`flex cursor-pointer flex-row rounded-md bg-white/10 p-3 backdrop-blur-md transition-all hover:bg-white/30 ${selectedScoreId === score.id && "ring-2 ring-inset ring-white/30"}`}
                 key={i}
+                onClick={() => setSelectedScoreId(score.id)}
               >
                 <p>{score.title}</p>
                 <p className="ml-auto">
@@ -106,4 +111,4 @@ export function Search() {
       </div>
     </div>
   );
-}
+};
