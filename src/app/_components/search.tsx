@@ -21,20 +21,20 @@ export function Search() {
   const [svg, setSvg] = useState("");
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(true);
 
-  // HACK: wait for verovio to be loaded before rendering
+  const rerenderInput = (input: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const svg: string = verovioToolkit.renderData(patternToMEI(input), {});
+    setSvg(svg);
+  };
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const svg: string = verovioToolkit.renderData(
-        patternToMEI(input),
-        {},
-      );
-      setSvg(svg);
-    }, 500);
+    // HACK: wait for verovio to be loaded before rendering
+    const timeout = setTimeout(() => rerenderInput(input), 500);
 
     return () => {
       clearTimeout(timeout);
-    }
-  }, []);
+    };
+  });
 
   return (
     <div className="flex h-full w-full max-w-md flex-col gap-6">
@@ -74,11 +74,7 @@ export function Search() {
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
-              const svg: string = verovioToolkit.renderData(
-                patternToMEI(e.target.value),
-                {},
-              );
-              setSvg(svg);
+              rerenderInput(e.target.value);
             }}
             className="w-full rounded-md px-4 py-2 text-black"
           />
