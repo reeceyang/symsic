@@ -37,7 +37,7 @@ export default function Home() {
         />
       </div>
       <div
-        className="flex-grow overflow-auto bg-white"
+        className={`flex-grow overflow-auto ${Boolean(svg) ? "bg-white" : "bg-transparent"} transition-all duration-500`}
         dangerouslySetInnerHTML={{ __html: svg ?? "" }}
       />
     </main>
