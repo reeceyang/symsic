@@ -4,7 +4,16 @@ import { PATTERN_TEMPLATE } from "@/common/patternTemplate";
 
 const getPattern = (patternContent: string) => {
   const fullPattern = PATTERN_TEMPLATE.replace("PATTERN", patternContent);
-  return convertToMEI(fullPattern);
+  const pattern = convertToMEI(fullPattern);
+  if (pattern[0] === undefined) {
+    throw new Error("Pattern is empty.");
+  }
+  return pattern[0];
+};
+
+export const patternToMEI = (patternContent: string) => {
+  const fullPattern = PATTERN_TEMPLATE.replace("PATTERN", patternContent);
+  return `<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="3.0.0" xmlns:query="http://www.matangover.com/musicquery">${convertToMEI(fullPattern).html()}</mei>`;
 };
 
 const convertToMEI = (patternText: string) => {
@@ -72,10 +81,8 @@ const convertToMEI = (patternText: string) => {
     tuplet.attr("bracket.visible", group.attr("bracket.visible"));
     group.replaceWith(tuplet);
   });
-  if (pattern[0] === undefined) {
-    throw new Error("Pattern is empty.");
-  }
-  return pattern[0];
+
+  return pattern;
 };
 
 export const meiToRegex = (input: string) => {

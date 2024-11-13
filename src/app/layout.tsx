@@ -14,8 +14,13 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
+      <head>
+        <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js" defer></script>
+        <script src="./createVerovioToolkit.js" defer></script>
+      </head>
       <body>
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { asc, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { kernScores } from "@/server/db/schema";
-import { getTableColumns, sql, WithSubquery } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { meiToRegex } from "@/common/meiToRegex";
 
 export const searchRouter = createTRPCRouter({
