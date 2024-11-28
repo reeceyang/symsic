@@ -1,11 +1,11 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FC } from "react";
 import { api } from "@/trpc/react";
 import { patternToMEI } from "@/common/meiToRegex";
 import { Checkbox, Field, Label } from "@headlessui/react";
-import { PITCH_NAMES, SearchInput } from "./note";
+import { SearchInput } from "./note";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const DEFAULT_INPUT = `<beam>
@@ -26,37 +26,28 @@ export const Search: FC<{
   );
   const [svg, setSvg] = useState("");
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
-  const [input, setInput] = useState<SearchInput>(new SearchInput([], null));
+  const [input, setInput] = useState<SearchInput>(new SearchInput());
 
-  for (const note of PITCH_NAMES) {
-    useHotkeys(note, () => {
-      const newInput = input.addNote({
-        pitchName: note,
-        duration: "4" as const,
-        octave: 4,
-      });
-      setInput(newInput);
-      rerenderInput(newInput.getMeiText());
-    });
-  }
-
-  useHotkeys("backspace", () => {
-    const newInput = input.deleteSelectedNote();
+  const setInputAndRerender = (newInput: SearchInput) => {
     setInput(newInput);
     rerenderInput(newInput.getMeiText());
-  });
+  };
 
-  useHotkeys("left", () => {
-    const newInput = input.selectPreviousNote();
-    setInput(newInput);
-    rerenderInput(newInput.getMeiText());
-  });
+  useHotkeys("a", () => setInputAndRerender(input.addNote("a")))
+  useHotkeys("b", () => setInputAndRerender(input.addNote("b")))
+  useHotkeys("c", () => setInputAndRerender(input.addNote("c")))
+  useHotkeys("d", () => setInputAndRerender(input.addNote("d")))
+  useHotkeys("e", () => setInputAndRerender(input.addNote("e")))
+  useHotkeys("f", () => setInputAndRerender(input.addNote("f")))
+  useHotkeys("g", () => setInputAndRerender(input.addNote("g")))
 
-  useHotkeys("right", () => {
-    const newInput = input.selectNextNote();
-    setInput(newInput);
-    rerenderInput(newInput.getMeiText());
-  });
+  useHotkeys("backspace", () =>
+    setInputAndRerender(input.deleteSelectedNote()),
+  );
+
+  useHotkeys("left", () => setInputAndRerender(input.selectPreviousNote()));
+
+  useHotkeys("right", () => setInputAndRerender(input.selectNextNote()));
 
   const rerenderInput = (input: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access

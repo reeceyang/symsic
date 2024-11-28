@@ -33,61 +33,138 @@ export const noteToMei = (note: Note): string => {
   return `<note ${attrs.join(" ")} />`;
 };
 
+interface SearchInputProps {
+  isDottedMode: boolean;
+  selectedDuration: Duration;
+  selectedOctave: number;
+  notes: Note[];
+  selectedIndex: number | null;
+}
+
 export class SearchInput {
+  private props: SearchInputProps;
+
   constructor(
-    private notes: Note[],
-    private selectedIndex: number | null,
+    props: SearchInputProps = {
+      isDottedMode: false,
+      selectedDuration: "4",
+      selectedOctave: 4,
+      notes: [],
+      selectedIndex: null,
+    },
   ) {
-    this.notes = notes;
-    this.selectedIndex = selectedIndex;
+    this.props = props;
   }
 
   getMeiText(): string {
-    return this.notes
+    return this.props.notes
       .map((note, i) =>
-        noteToMei({ ...note, selected: i === this.selectedIndex }),
+        noteToMei({ ...note, selected: i === this.props.selectedIndex }),
       )
       .join("");
   }
 
-  addNote(a: Omit<Note, "selected">): SearchInput {
-    const newNotes = [...this.notes, a];
+  getSelectedDuration(): Duration {
+    return this.props.selectedDuration;
+  }
+
+  setSelectedDuration(duration: Duration): SearchInput {
+    return new SearchInput({ ...this.props, selectedDuration: duration });
+  }
+
+  getSelectedOctave(): number {
+    return this.props.selectedOctave;
+  }
+
+  increaseSelectedOctave(): SearchInput {
+    return new SearchInput({
+      ...this.props,
+      selectedOctave: this.props.selectedOctave + 1,
+    });
+  }
+
+  decreaseSelectedOctave(): SearchInput {
+    return new SearchInput({
+      ...this.props,
+      selectedOctave: this.props.selectedOctave - 1,
+    });
+  }
+
+  getIsDottedMode(): boolean {
+    return this.props.isDottedMode;
+  }
+
+  toggleDottedMode(): SearchInput {
+    return new SearchInput({
+      ...this.props,
+      isDottedMode: !this.props.isDottedMode,
+    });
+  }
+
+  addNote(pitchName: PitchName): SearchInput {
+    const newNotes: Note[] = [
+      ...this.props.notes,
+      {
+        duration: this.props.selectedDuration,
+        pitchName,
+        octave: this.props.selectedOctave,
+        dotted: this.props.isDottedMode,
+      },
+    ];
     const newSelectedIndex = newNotes.length - 1;
-    return new SearchInput(newNotes, newSelectedIndex);
+    return new SearchInput({
+      ...this.props,
+      notes: newNotes,
+      selectedIndex: newSelectedIndex,
+    });
   }
 
   deleteSelectedNote(): SearchInput {
-    if (this.selectedIndex === null) {
+    if (this.props.selectedIndex === null) {
       return this;
     }
-    const newNotes = [...this.notes];
-    newNotes.splice(this.selectedIndex, 1);
+    const newNotes = [...this.props.notes];
+    newNotes.splice(this.props.selectedIndex, 1);
     // If the no note was selected, we don't need to update the selected index
-    if (this.selectedIndex === 0) {
+    if (this.props.selectedIndex === 0) {
       // if the first note was selected and deleted, selected the first note if it exists
-      return new SearchInput(newNotes, newNotes.length === 0 ? null : 0);
+      return new SearchInput({
+        ...this.props,
+        notes: newNotes,
+        selectedIndex: newNotes.length === 0 ? null : 0,
+      });
     }
     // select the previous note
-    return new SearchInput(newNotes, this.selectedIndex - 1);
+    return new SearchInput({
+      ...this.props,
+      notes: newNotes,
+      selectedIndex: this.props.selectedIndex - 1,
+    });
   }
 
   selectNextNote(): SearchInput {
-    if (this.selectedIndex === null) {
+    if (this.props.selectedIndex === null) {
       return this;
     }
-    if (this.selectedIndex === this.notes.length - 1) {
+    if (this.props.selectedIndex === this.props.notes.length - 1) {
       return this;
     }
-    return new SearchInput(this.notes, this.selectedIndex + 1);
+    return new SearchInput({
+      ...this.props,
+      selectedIndex: this.props.selectedIndex + 1,
+    });
   }
 
   selectPreviousNote(): SearchInput {
-    if (this.selectedIndex === null) {
+    if (this.props.selectedIndex === null) {
       return this;
     }
-    if (this.selectedIndex === 0) {
+    if (this.props.selectedIndex === 0) {
       return this;
     }
-    return new SearchInput(this.notes, this.selectedIndex - 1);
+    return new SearchInput({
+      ...this.props,
+      selectedIndex: this.props.selectedIndex - 1,
+    });
   }
 }
