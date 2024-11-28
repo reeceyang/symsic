@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import type { FC } from "react";
 import { api } from "@/trpc/react";
 import { patternToMEI } from "@/common/meiToRegex";
 import { Checkbox, Field, Label } from "@headlessui/react";
+import { PITCH_NAMES, SearchInput } from "./note";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const DEFAULT_INPUT = `<beam>
     <note dur="8" dots="1" query:any-pitch="true" />
@@ -16,24 +18,58 @@ export const Search: FC<{
   setSelectedScoreId: (id: number | null) => void;
   selectedScoreId: number | null;
 }> = ({ setSelectedScoreId, selectedScoreId }) => {
-  const [input, setInput] = useState(DEFAULT_INPUT);
+  const [advancedInput, setAdvancedInput] = useState(DEFAULT_INPUT);
   const [meiText, setMeiText] = useState(``);
   const { data } = api.search.search.useQuery(
     { meiText },
     { enabled: Boolean(meiText) },
   );
   const [svg, setSvg] = useState("");
-  const [isAdvancedSearch, setIsAdvancedSearch] = useState(true);
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
+  const [input, setInput] = useState<SearchInput>(new SearchInput([], null));
+
+  for (const note of PITCH_NAMES) {
+    useHotkeys(note, () => {
+      const newInput = input.addNote({
+        pitchName: note,
+        duration: "4" as const,
+        octave: 4,
+      });
+      setInput(newInput);
+      rerenderInput(newInput.getMeiText());
+    });
+  }
+
+  useHotkeys("backspace", () => {
+    const newInput = input.deleteSelectedNote();
+    setInput(newInput);
+    rerenderInput(newInput.getMeiText());
+  });
+
+  useHotkeys("left", () => {
+    const newInput = input.selectPreviousNote();
+    setInput(newInput);
+    rerenderInput(newInput.getMeiText());
+  });
+
+  useHotkeys("right", () => {
+    const newInput = input.selectNextNote();
+    setInput(newInput);
+    rerenderInput(newInput.getMeiText());
+  });
 
   const rerenderInput = (input: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const svg: string = verovioToolkit.renderData(patternToMEI(input), {});
+    const svg: string = verovioToolkit.renderData(
+      isAdvancedSearch ? advancedInput : patternToMEI(input),
+      {},
+    );
     setSvg(svg);
   };
 
   useEffect(() => {
     // HACK: wait for verovio to be loaded before rendering
-    const timeout = setTimeout(() => rerenderInput(input), 500);
+    const timeout = setTimeout(() => rerenderInput(input.getMeiText()), 500);
 
     return () => {
       clearTimeout(timeout);
@@ -69,15 +105,15 @@ export const Search: FC<{
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setMeiText(input);
+            setMeiText(advancedInput);
           }}
           className="flex flex-row gap-2"
         >
           <textarea
             placeholder="MEI"
-            value={input}
+            value={advancedInput}
             onChange={(e) => {
-              setInput(e.target.value);
+              setAdvancedInput(e.target.value);
               rerenderInput(e.target.value);
             }}
             className="w-full rounded-md px-4 py-2 text-black"
