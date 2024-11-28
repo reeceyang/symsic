@@ -33,21 +33,30 @@ export const Search: FC<{
     rerenderInput(newInput.getMeiText());
   };
 
-  useHotkeys("a", () => setInputAndRerender(input.addNote("a")))
-  useHotkeys("b", () => setInputAndRerender(input.addNote("b")))
-  useHotkeys("c", () => setInputAndRerender(input.addNote("c")))
-  useHotkeys("d", () => setInputAndRerender(input.addNote("d")))
-  useHotkeys("e", () => setInputAndRerender(input.addNote("e")))
-  useHotkeys("f", () => setInputAndRerender(input.addNote("f")))
-  useHotkeys("g", () => setInputAndRerender(input.addNote("g")))
-
+  useHotkeys("a", () => setInputAndRerender(input.addNote("a")));
+  useHotkeys("b", () => setInputAndRerender(input.addNote("b")));
+  useHotkeys("c", () => setInputAndRerender(input.addNote("c")));
+  useHotkeys("d", () => setInputAndRerender(input.addNote("d")));
+  useHotkeys("e", () => setInputAndRerender(input.addNote("e")));
+  useHotkeys("f", () => setInputAndRerender(input.addNote("f")));
+  useHotkeys("g", () => setInputAndRerender(input.addNote("g")));
   useHotkeys("backspace", () =>
     setInputAndRerender(input.deleteSelectedNote()),
   );
-
   useHotkeys("left", () => setInputAndRerender(input.selectPreviousNote()));
-
   useHotkeys("right", () => setInputAndRerender(input.selectNextNote()));
+  useHotkeys(".", () => setInputAndRerender(input.toggleDottedMode()));
+  useHotkeys("7", () => setInputAndRerender(input.setSelectedDuration("1")));
+  useHotkeys("6", () => setInputAndRerender(input.setSelectedDuration("2")));
+  useHotkeys("5", () => setInputAndRerender(input.setSelectedDuration("4")));
+  useHotkeys("4", () => setInputAndRerender(input.setSelectedDuration("8")));
+  useHotkeys("3", () => setInputAndRerender(input.setSelectedDuration("16")));
+  useHotkeys("2", () => setInputAndRerender(input.setSelectedDuration("32")));
+  useHotkeys("1", () => setInputAndRerender(input.setSelectedDuration("64")));
+  useHotkeys("up", () => setInputAndRerender(input.moveSelectedNoteUp()));
+  useHotkeys("down", () => setInputAndRerender(input.moveSelectedNoteDown()));
+  useHotkeys("mod+up", () => setInputAndRerender(input.incrementSelectedNoteOctave()));
+  useHotkeys("mod+down", () => setInputAndRerender(input.decrementSelectedNoteOctave()));
 
   const rerenderInput = (input: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -69,10 +78,18 @@ export const Search: FC<{
 
   return (
     <div className="flex h-full w-full max-w-md flex-col gap-6">
-      <div
-        className="h-36 overflow-clip rounded-md bg-white"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+      <div className="flex flex-col gap-2">
+        {!isAdvancedSearch && (
+          <div className="flex flex-row gap-2">
+            Selected duration: {input.getIsDottedMode() && "dotted"}{" "}
+            {input.getSelectedDuration()}
+          </div>
+        )}
+        <div
+          className="h-36 overflow-clip rounded-md bg-white"
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+      </div>
       <div className="flex flex-row gap-4">
         <Field className="flex items-center gap-2">
           <Checkbox

@@ -72,24 +72,6 @@ export class SearchInput {
     return new SearchInput({ ...this.props, selectedDuration: duration });
   }
 
-  getSelectedOctave(): number {
-    return this.props.selectedOctave;
-  }
-
-  increaseSelectedOctave(): SearchInput {
-    return new SearchInput({
-      ...this.props,
-      selectedOctave: this.props.selectedOctave + 1,
-    });
-  }
-
-  decreaseSelectedOctave(): SearchInput {
-    return new SearchInput({
-      ...this.props,
-      selectedOctave: this.props.selectedOctave - 1,
-    });
-  }
-
   getIsDottedMode(): boolean {
     return this.props.isDottedMode;
   }
@@ -166,5 +148,109 @@ export class SearchInput {
       ...this.props,
       selectedIndex: this.props.selectedIndex - 1,
     });
+  }
+
+  /**
+   * Change the octave of the selected note and also set the selected octave to 
+   * the given octave so that new notes are added with the same octave.
+   * 
+   * @param octave the new octave of the note
+   * @returns a new SearchInput with the selected note's octave changed to the given octave and the selected octave set to the given octave
+   */
+  private changeSelectedNoteOctave(octave: number): SearchInput {
+    if (this.props.selectedIndex === null) {
+      return this;
+    }
+    const newNotes = [...this.props.notes];
+    const selectedNote = newNotes[this.props.selectedIndex];
+    if (!selectedNote) {
+      throw new Error("selectedNote is undefined");
+    }
+    newNotes[this.props.selectedIndex] = { ...selectedNote, octave };
+    return new SearchInput({
+      ...this.props,
+      notes: newNotes,
+      selectedOctave: octave,
+    });
+  }
+
+  /**
+   * @returns a new SearchInput with the selected note's octave incremented by 1 and the selected octave set to the incremented octave
+   */
+  incrementSelectedNoteOctave(): SearchInput {
+    return this.changeSelectedNoteOctave(this.props.selectedOctave + 1);
+  }
+
+  /**
+   * 
+   * @returns a new SearchInput with the selected note's octave decremented by 1 and the selected octave set to the decremented octave
+   */
+  decrementSelectedNoteOctave(): SearchInput {
+    return this.changeSelectedNoteOctave(this.props.selectedOctave - 1);
+  }
+
+  /**
+   * Change the pitch of the selected note.
+   * 
+   * @param pitch the new pitch of the selected note
+   * @returns a new SearchInput with the selected note's pitch changed to the given pitch 
+   */
+  private changeSelectedNotePitch(pitch: PitchName): SearchInput {
+    if (this.props.selectedIndex === null) {
+      return this;
+    }
+    const newNotes = [...this.props.notes];
+    const selectedNote = newNotes[this.props.selectedIndex];
+    if (!selectedNote) {
+      throw new Error("selectedNote is undefined");
+    }
+    newNotes[this.props.selectedIndex] = { ...selectedNote, pitchName: pitch };
+    return new SearchInput({
+      ...this.props,
+      notes: newNotes,
+    });
+  }
+
+  private getSelectedNote(): Note | null { 
+    if (this.props.selectedIndex === null) {
+      return null;
+    }
+    return this.props.notes[this.props.selectedIndex] ?? null;
+  }
+
+  moveSelectedNoteUp(): SearchInput {
+    const selectedNote = this.getSelectedNote();
+    if (selectedNote === null) {
+      return this;
+    }
+    const selectedPitchIndex = PITCH_NAMES.indexOf(selectedNote.pitchName);
+    const newPitchIndex = (selectedPitchIndex + 1) % PITCH_NAMES.length;
+    const newPitch = PITCH_NAMES[newPitchIndex];
+    if (!newPitch) {
+      throw new Error("newPitch is undefined");
+    }
+    const newSearchInput = this.changeSelectedNotePitch(newPitch);
+    if (newPitch === "c") {
+      return newSearchInput.incrementSelectedNoteOctave();
+    }
+    return newSearchInput;
+  }
+
+  moveSelectedNoteDown(): SearchInput {
+    const selectedNote = this.getSelectedNote();
+    if (selectedNote === null) {
+      return this;
+    }
+    const selectedPitchIndex = PITCH_NAMES.indexOf(selectedNote.pitchName);
+    const newPitchIndex = (selectedPitchIndex - 1 + PITCH_NAMES.length) % PITCH_NAMES.length;
+    const newPitch = PITCH_NAMES[newPitchIndex];
+    if (!newPitch) {
+      throw new Error("newPitch is undefined");
+    }
+    const newSearchInput = this.changeSelectedNotePitch(newPitch);
+    if (newPitch === "b") {
+      return newSearchInput.decrementSelectedNoteOctave();
+    }
+    return newSearchInput;
   }
 }
