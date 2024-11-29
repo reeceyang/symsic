@@ -31,6 +31,7 @@ export const Search: FC<{
   const setInputAndRerender = (newInput: SearchInput) => {
     setInput(newInput);
     rerenderInput(newInput.getMeiText());
+    setMeiText(newInput.getMeiText());
   };
 
   useHotkeys("a", () => setInputAndRerender(input.addNote("a")));
@@ -118,14 +119,6 @@ export const Search: FC<{
             />
             <Label>Use sequential scan</Label>
           </Field>
-        )}
-        {!isAdvancedSearch && (
-          <button
-            onClick={() => setMeiText(input.getMeiText())}
-            className="ml-auto rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/30"
-          >
-            Search
-          </button>
         )}
       </div>
       {isAdvancedSearch && (
