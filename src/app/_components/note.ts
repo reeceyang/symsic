@@ -24,7 +24,7 @@ export const noteToMei = (note: Note): string => {
   if (note.dotted) {
     attrs.push(`dots="1"`);
   }
-  if (note.accidental !== null) {
+  if (note.accidental) {
     attrs.push(`accid="${note.accidental}"`);
   }
   if (note.selected) {
