@@ -61,7 +61,7 @@ export const Search: FC<{
   const rerenderInput = (input: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const svg: string = verovioToolkit.renderData(
-      isAdvancedSearch ? advancedInput : patternToMEI(input),
+      isAdvancedSearch ? patternToMEI(advancedInput) : patternToMEI(input),
       {},
     );
     setSvg(svg);
