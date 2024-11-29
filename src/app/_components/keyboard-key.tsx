@@ -1,4 +1,4 @@
-import { FC } from "react";
+import type { FC } from "react";
 
 const KeyboardKey: FC<{ name: string }> = ({ name }) => {
   return (

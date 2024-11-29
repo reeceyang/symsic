@@ -55,7 +55,7 @@ export default function Home() {
               <p>Insert notes: </p>
               <p>
                 {PITCH_NAMES.map((pitch) => (
-                  <KeyboardKey name={pitch} />
+                  <KeyboardKey name={pitch} key={pitch} />
                 ))}
               </p>
               <p>Select note:</p>
@@ -84,8 +84,8 @@ export default function Home() {
               </p>
               <p>Change selected duration: </p>
               <p>
-                {[1, 2, 3, 4, 5, 6, 7].map((pitch) => (
-                  <KeyboardKey name={`${pitch}`} />
+                {[1, 2, 3, 4, 5, 6, 7].map((duration) => (
+                  <KeyboardKey name={`${duration}`} key={duration} />
                 ))}
               </p>
               <p>Toggle dotted duration:</p>
