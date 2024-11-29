@@ -1,7 +1,7 @@
 export const DURATIONS = ["1", "2", "4", "8", "16", "32", "64", "128"] as const;
 export type Duration = (typeof DURATIONS)[number];
 
-export const ACCIDENTALS = ["sharp", "flat", "natural"] as const;
+export const ACCIDENTALS = ["s", "f"] as const;
 export type Accidental = (typeof ACCIDENTALS)[number];
 
 export const PITCH_NAMES = ["c", "d", "e", "f", "g", "a", "b"] as const;
@@ -151,9 +151,9 @@ export class SearchInput {
   }
 
   /**
-   * Change the octave of the selected note and also set the selected octave to 
+   * Change the octave of the selected note and also set the selected octave to
    * the given octave so that new notes are added with the same octave.
-   * 
+   *
    * @param octave the new octave of the note
    * @returns a new SearchInput with the selected note's octave changed to the given octave and the selected octave set to the given octave
    */
@@ -182,7 +182,7 @@ export class SearchInput {
   }
 
   /**
-   * 
+   *
    * @returns a new SearchInput with the selected note's octave decremented by 1 and the selected octave set to the decremented octave
    */
   decrementSelectedNoteOctave(): SearchInput {
@@ -191,9 +191,9 @@ export class SearchInput {
 
   /**
    * Change the pitch of the selected note.
-   * 
+   *
    * @param pitch the new pitch of the selected note
-   * @returns a new SearchInput with the selected note's pitch changed to the given pitch 
+   * @returns a new SearchInput with the selected note's pitch changed to the given pitch
    */
   private changeSelectedNotePitch(pitch: PitchName): SearchInput {
     if (this.props.selectedIndex === null) {
@@ -211,11 +211,15 @@ export class SearchInput {
     });
   }
 
-  private getSelectedNote(): Note | null { 
+  private getSelectedNote(): Note | null {
     if (this.props.selectedIndex === null) {
       return null;
     }
-    return this.props.notes[this.props.selectedIndex] ?? null;
+    const selectedNote = this.props.notes[this.props.selectedIndex];
+    if (!selectedNote) {
+      throw new Error("selectedNote is undefined");
+    }
+    return selectedNote;
   }
 
   moveSelectedNoteUp(): SearchInput {
@@ -242,7 +246,8 @@ export class SearchInput {
       return this;
     }
     const selectedPitchIndex = PITCH_NAMES.indexOf(selectedNote.pitchName);
-    const newPitchIndex = (selectedPitchIndex - 1 + PITCH_NAMES.length) % PITCH_NAMES.length;
+    const newPitchIndex =
+      (selectedPitchIndex - 1 + PITCH_NAMES.length) % PITCH_NAMES.length;
     const newPitch = PITCH_NAMES[newPitchIndex];
     if (!newPitch) {
       throw new Error("newPitch is undefined");
@@ -252,5 +257,45 @@ export class SearchInput {
       return newSearchInput.decrementSelectedNoteOctave();
     }
     return newSearchInput;
+  }
+
+  private changeSelectedNoteAccidental(
+    accidental: Accidental | undefined,
+  ): SearchInput {
+    if (this.props.selectedIndex === null) {
+      return this;
+    }
+    const newNotes = [...this.props.notes];
+    const selectedNote = newNotes[this.props.selectedIndex];
+    if (!selectedNote) {
+      throw new Error("selectedNote is undefined");
+    }
+    newNotes[this.props.selectedIndex] = { ...selectedNote, accidental };
+    return new SearchInput({
+      ...this.props,
+      notes: newNotes,
+    });
+  }
+
+  toggleSelectedNoteSharp(): SearchInput {
+    const selectedNote = this.getSelectedNote();
+    if (selectedNote === null) {
+      return this;
+    }
+    if (selectedNote.accidental === "s") {
+      return this.changeSelectedNoteAccidental(undefined);
+    }
+    return this.changeSelectedNoteAccidental("s");
+  }
+
+  toggleSelectedNoteFlat(): SearchInput {
+    const selectedNote = this.getSelectedNote();
+    if (selectedNote === null) {
+      return this;
+    }
+    if (selectedNote.accidental === "f") {
+      return this.changeSelectedNoteAccidental(undefined);
+    }
+    return this.changeSelectedNoteAccidental("f");
   }
 }

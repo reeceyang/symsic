@@ -55,8 +55,19 @@ export const Search: FC<{
   useHotkeys("1", () => setInputAndRerender(input.setSelectedDuration("64")));
   useHotkeys("up", () => setInputAndRerender(input.moveSelectedNoteUp()));
   useHotkeys("down", () => setInputAndRerender(input.moveSelectedNoteDown()));
-  useHotkeys("mod+up", () => setInputAndRerender(input.incrementSelectedNoteOctave()));
-  useHotkeys("mod+down", () => setInputAndRerender(input.decrementSelectedNoteOctave()));
+  useHotkeys("mod+up", () =>
+    setInputAndRerender(input.incrementSelectedNoteOctave()),
+  );
+  useHotkeys("mod+down", () =>
+    setInputAndRerender(input.decrementSelectedNoteOctave()),
+  );
+  // i.e. the plus key (not sure if this would break on non-US keyboards)
+  useHotkeys("shift+equal", () =>
+    setInputAndRerender(input.toggleSelectedNoteSharp()),
+  );
+  useHotkeys("minus", () =>
+    setInputAndRerender(input.toggleSelectedNoteFlat()),
+  );
 
   const rerenderInput = (input: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -81,7 +92,7 @@ export const Search: FC<{
       <div className="flex flex-col gap-2">
         {!isAdvancedSearch && (
           <div className="flex flex-row gap-2">
-            Selected duration: {input.getIsDottedMode() && "dotted"}{" "}
+            Selected duration: {input.getIsDottedMode() && "dotted"} 1/
             {input.getSelectedDuration()}
           </div>
         )}
