@@ -5,10 +5,13 @@ import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import KeyboardKey from "./_components/keyboard-key";
 import { PITCH_NAMES } from "./_components/note";
+import { markHumdrum } from "@/common/markHumdrum";
+import { meiToRegex } from "@/common/meiToRegex";
 
 export default function Home() {
   const [selectedScoreId, setSelectedScoreId] = useState<number | null>(null);
   const [svg, setSvg] = useState<string | null>(null);
+  const [meiText, setMeiText] = useState("");
 
   const { data } = api.search.getKernData.useQuery(
     { id: selectedScoreId ?? 0 }, // default to 0 to make types work
@@ -17,8 +20,11 @@ export default function Home() {
 
   useEffect(() => {
     if (data?.kernData) {
+      console.log(meiToRegex(meiText));
+      const markedHumdrum = markHumdrum(data.kernData, meiToRegex(meiText));
+      console.log(markedHumdrum);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const svg: string = verovioToolkit.renderData(data.kernData, {});
+      const svg: string = verovioToolkit.renderData(markedHumdrum, {});
       console.log("done rendering");
       setSvg(svg);
     }
@@ -36,6 +42,8 @@ export default function Home() {
             setSvg(null);
           }}
           selectedScoreId={selectedScoreId}
+          meiText={meiText}
+          setMeiText={setMeiText}
         />
       </div>
       {!svg && (
