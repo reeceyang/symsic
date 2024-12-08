@@ -9,6 +9,8 @@ import { PITCH_NAMES } from "./_components/note";
 export default function Home() {
   const [selectedScoreId, setSelectedScoreId] = useState<number | null>(null);
   const [svg, setSvg] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
 
   const { data } = api.search.getKernData.useQuery(
     { id: selectedScoreId ?? 0 }, // default to 0 to make types work
@@ -18,11 +20,16 @@ export default function Home() {
   useEffect(() => {
     if (data?.kernData) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const svg: string = verovioToolkit.renderData(data.kernData, {});
+      verovioToolkit.loadData(data.kernData);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const svg: string = verovioToolkit.renderToSVG(page, {});
       console.log("done rendering");
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const newPageCount: number = verovioToolkit.getPageCount();
+      setPageCount(newPageCount);
       setSvg(svg);
     }
-  }, [selectedScoreId, data?.kernData]);
+  }, [selectedScoreId, data?.kernData, page]);
 
   return (
     <main className="flex max-h-screen min-h-screen flex-row overflow-clip bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
@@ -34,6 +41,7 @@ export default function Home() {
           setSelectedScoreId={(newId) => {
             setSelectedScoreId(newId);
             setSvg(null);
+            setPage(1);
           }}
           selectedScoreId={selectedScoreId}
         />
@@ -105,8 +113,20 @@ export default function Home() {
       )}
       <div
         className={`flex-grow overflow-auto ${Boolean(svg) ? "bg-white" : "bg-transparent"} transition-all duration-500`}
-        dangerouslySetInnerHTML={{ __html: svg ?? "" }}
-      />
+      >
+        {svg && (
+          <div className="fixed float-start flex w-full flex-row gap-1 bg-gradient-to-b from-white to-white/50 px-4 py-2 font-serif text-xl backdrop-blur-sm">
+            <button onClick={() => setPage(Math.max(page - 1, 1))}>⬅️</button>
+            <button onClick={() => setPage(Math.min(page + 1, pageCount))}>
+              ➡️
+            </button>
+            <p className="mx-4 text-black">
+              Page {page} of {pageCount}
+            </p>
+          </div>
+        )}
+        <div className="mt-6" dangerouslySetInnerHTML={{ __html: svg ?? "" }} />
+      </div>
     </main>
   );
 }
