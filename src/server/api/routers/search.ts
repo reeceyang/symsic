@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { desc } from "drizzle-orm";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { kernScores } from "@/server/db/schema";
+import { kernScores, kernVoices } from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { meiToRegex } from "@/common/meiToRegex";
 import { db } from "@/server/db";
@@ -20,9 +20,19 @@ export const searchRouter = createTRPCRouter({
         results = await checkAndReturnPattern(regex, ctx);
         if (results != undefined) {
           // first rename kernScoreId to id
-          results = results.map((result: { kernScoreId: Number; title: string; matchCount: Number; }) => {
-            return { id: result.kernScoreId, title: result.title, matchCount: result.matchCount };
-          });
+          results = results.map(
+            (result: {
+              kernScoreId: Number;
+              title: string;
+              matchCount: Number;
+            }) => {
+              return {
+                id: result.kernScoreId,
+                title: result.title,
+                matchCount: result.matchCount,
+              };
+            },
+          );
           return results;
         }
       }
@@ -66,6 +76,15 @@ export const searchRouter = createTRPCRouter({
       });
       return result;
     }),
+
+  getKernVoices: publicProcedure
+    .input(z.object({ scoreId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.db.query.kernVoices.findMany({
+        where: eq(kernVoices.scoreId, input.scoreId),
+      });
+      return result;
+    }),
 });
 
 async function checkAndReturnPattern(pattern: string, ctx: any) {
@@ -76,7 +95,8 @@ async function checkAndReturnPattern(pattern: string, ctx: any) {
 
   // if it is, find results and join on kernScores to grab the titles
   if (existingPattern != undefined && existingPattern.id != undefined) {
-    const results = await ctx.db.select({
+    const results = await ctx.db
+      .select({
         kernScoreId: kernPatternMatches.kernScoreId,
         title: kernScores.title,
         matchCount: kernPatternMatches.matchCount,
@@ -90,7 +110,10 @@ async function checkAndReturnPattern(pattern: string, ctx: any) {
   }
 }
 
-async function insertPattern(results: { id: number; title: string; matchCount: number }[], pattern: string) {
+async function insertPattern(
+  results: { id: number; title: string; matchCount: number }[],
+  pattern: string,
+) {
   // first check if the pattern is already in the db
   const existingPattern = await db.query.kernPatterns.findFirst({
     where: eq(kernPatterns.pattern, pattern),
