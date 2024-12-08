@@ -18,17 +18,30 @@ export default function Home() {
     { enabled: selectedScoreId !== null },
   );
 
+  const { data: voices } = api.search.getKernVoices.useQuery(
+    { scoreId: selectedScoreId ?? 0 },
+    { enabled: selectedScoreId !== null },
+  );
+
   useEffect(() => {
-    if (data?.kernData) {
+    if (data?.kernData && voices) {
       console.log(meiToRegex(meiText));
-      const markedHumdrum = markHumdrum(data.kernData, meiToRegex(meiText));
-      console.log(markedHumdrum);
+      const markedVoices = voices.map((voice) =>
+        markHumdrum(voice.voice, meiToRegex(meiText)).split("\n"),
+      );
+      let combined = "";
+      for (let i = 0; i < markedVoices[0]!.length; i++) {
+        for (let j = 0; j < markedVoices.length; j++) {
+          combined += markedVoices[j]![i] + "\t";
+        }
+        combined += "\n";
+      }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const svg: string = verovioToolkit.renderData(markedHumdrum, {});
+      const svg: string = verovioToolkit.renderData(combined, {});
       console.log("done rendering");
       setSvg(svg);
     }
-  }, [selectedScoreId, data?.kernData]);
+  }, [selectedScoreId, data?.kernData, voices]);
 
   return (
     <main className="flex max-h-screen min-h-screen flex-row overflow-clip bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
