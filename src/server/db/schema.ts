@@ -48,6 +48,7 @@ export const kernPatterns = createTable(
   },
   (table) => ({
     patternIndex: index("pattern_idx").on(table.pattern),
+    patternHashIndex: index().using("hash", table.pattern),
   }),
 );
 
@@ -66,3 +67,14 @@ export const kernPatternMatches = createTable(
     kernScoreIdIndex: index("kern_score_id_idx").on(table.kernScoreId),
   }),
 );
+
+export const kernPatternMatchesRelations = relations(kernPatternMatches, ({ one }) => ({
+  pattern: one(kernPatterns, {
+    fields: [kernPatternMatches.patternId],
+    references: [kernPatterns.id],
+  }),
+  score: one(kernScores, {
+    fields: [kernPatternMatches.kernScoreId],
+    references: [kernScores.id],
+  }),
+}));

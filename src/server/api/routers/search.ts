@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { desc } from "drizzle-orm";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { kernScores } from "@/server/db/schema";
+import { kernScores, kernVoices} from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { meiToRegex } from "@/common/meiToRegex";
-import { db } from "@/server/db";
 import { kernPatterns, kernPatternMatches } from "@/server/db/schema";
 
 const SEARCH_EXISTING_PATTERNS = true;
@@ -17,7 +16,7 @@ export const searchRouter = createTRPCRouter({
       let results;
       if (SEARCH_EXISTING_PATTERNS) {
         // check if pattern is in the db
-        results = await checkAndReturnPattern(regex, ctx);
+        results = await checkAndReturnPattern(regex, ctx.db);
         if (results != undefined) {
           // first rename kernScoreId to id
           results = results.map((result: { kernScoreId: Number; title: string; matchCount: Number; }) => {
@@ -27,32 +26,12 @@ export const searchRouter = createTRPCRouter({
         }
       }
 
-      // create a subquery to count num of matches so that we don't have to recompute it
-      // aliasing doesn't work :(
-      const matchesSubquery = ctx.db.$with("matches").as(
-        ctx.db
-          .select({
-            id: kernScores.id,
-            title: kernScores.title,
-            matchCount:
-              sql<number>`regexp_count(${kernScores.kernData}, ${regex}, 1, 'm')`.as(
-                "match_count",
-              ),
-          })
-          .from(kernScores),
-      );
-
-      // grab results that match
-      results = await ctx.db
-        .with(matchesSubquery)
-        .select()
-        .from(matchesSubquery)
-        .where(sql`match_count > 0`)
-        .orderBy(desc(matchesSubquery.matchCount));
+      // did not return early, need to do a sequential scan
+      results = await sequentialScan(regex, ctx.db);
 
       if (UPDATE_PATTERNS) {
         // start an asynchronous job to insert the pattern into the db
-        insertPattern(results, regex);
+        insertPattern(results, regex, ctx.db);
       }
 
       return results;
@@ -68,15 +47,48 @@ export const searchRouter = createTRPCRouter({
     }),
 });
 
-async function checkAndReturnPattern(pattern: string, ctx: any) {
+async function sequentialScan(pattern: string, db: any) {
+
+    // create a subquery to count num of matches in voices and sum them over kernId
+    const matchesSubquery = db.$with("matches").as(
+      db
+        .select({
+          kernId: kernVoices.scoreId,
+          matchCount:
+            sql<number>`SUM(regexp_count(${kernVoices.voice}, ${pattern}, 1, 'm'))`.as(
+              "match_count",
+            ),
+        })
+        .from(kernVoices)
+        .groupBy(kernVoices.scoreId),
+    );
+
+    // grab results that match and join with kernScores to get titles
+    const results = await db
+      .with(matchesSubquery)
+      .select({
+        id: kernScores.id,
+        title: kernScores.title,
+        matchCount: matchesSubquery.matchCount,
+      })
+      .from(matchesSubquery)
+      .leftJoin(kernScores, eq(matchesSubquery.kernId, kernScores.id))
+      .where(sql`match_count > 0`)
+      .orderBy(desc(matchesSubquery.matchCount));
+    
+    return results;
+}
+
+async function checkAndReturnPattern(pattern: string, db: any) {
   // check if pattern is in the db
-  const existingPattern = await ctx.db.query.kernPatterns.findFirst({
+  const existingPattern = await db.query.kernPatterns.findFirst({
     where: eq(kernPatterns.pattern, pattern),
   });
 
   // if it is, find results and join on kernScores to grab the titles
   if (existingPattern != undefined && existingPattern.id != undefined) {
-    const results = await ctx.db.select({
+    console.log("found pattern in db");
+    const results = await db.select({
         kernScoreId: kernPatternMatches.kernScoreId,
         title: kernScores.title,
         matchCount: kernPatternMatches.matchCount,
@@ -90,7 +102,7 @@ async function checkAndReturnPattern(pattern: string, ctx: any) {
   }
 }
 
-async function insertPattern(results: { id: number; title: string; matchCount: number }[], pattern: string) {
+async function insertPattern(results: { id: number; title: string; matchCount: number }[], pattern: string, db: any) {
   // first check if the pattern is already in the db
   const existingPattern = await db.query.kernPatterns.findFirst({
     where: eq(kernPatterns.pattern, pattern),
@@ -116,3 +128,5 @@ async function insertPattern(results: { id: number; title: string; matchCount: n
     });
   }
 }
+
+export {checkAndReturnPattern, sequentialScan}
