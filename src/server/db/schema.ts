@@ -39,3 +39,30 @@ export const kernVoicesRelations = relations(kernVoices, ({ one }) => ({
     references: [kernScores.id],
   }),
 }));
+// inverted indexes available for searching
+export const kernPatterns = createTable(
+  "kern_pattern",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    pattern: varchar("pattern", { length: 512 }).notNull(),
+  },
+  (table) => ({
+    patternIndex: index("pattern_idx").on(table.pattern),
+  }),
+);
+
+// table for storing number of matches for a given pattern and kern score
+export const kernPatternMatches = createTable(
+  "kern_pattern_match",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    patternId: integer("pattern_id").notNull(),
+    kernScoreId: integer("kern_score_id").notNull(),
+    matchCount: integer("match_count").notNull(),
+  },
+  (table) => ({
+    patternIdIndex: index("pattern_id_idx").on(table.patternId),
+    patternIdHashIndex: index().using("hash", table.patternId),
+    kernScoreIdIndex: index("kern_score_id_idx").on(table.kernScoreId),
+  }),
+);
