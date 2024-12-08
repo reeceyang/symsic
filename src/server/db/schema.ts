@@ -1,12 +1,11 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import {
-  index,
-  integer,
-  pgTableCreator,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { index, integer, pgTableCreator, varchar } from "drizzle-orm/pg-core";
+
+// 2 million because our largest kern file in the db approaches that
+const MAX_KERN_LENGTH = 2000000;
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -21,10 +20,22 @@ export const kernScores = createTable(
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     title: varchar("title", { length: 256 }).notNull(),
-    // 2 million because our largest kern file in the db approaches that
-    kernData: varchar("kern_data", { length: 2000000 }).notNull(),
+    kernData: varchar("kern_data", { length: MAX_KERN_LENGTH }).notNull(),
   },
   (table) => ({
     titleIndex: index("title_idx").on(table.title),
-  })
+  }),
 );
+
+export const kernVoices = createTable("kern_voice", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  scoreId: integer("score_id").notNull(),
+  voice: varchar("voice", { length: MAX_KERN_LENGTH }).notNull(),
+});
+
+export const kernVoicesRelations = relations(kernVoices, ({ one }) => ({
+  score: one(kernScores, {
+    fields: [kernVoices.scoreId],
+    references: [kernScores.id],
+  }),
+}));
