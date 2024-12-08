@@ -15,6 +15,7 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "import-kern": "npx tsx import-kern-files.ts",
     "generate-inverted-index": "npx tsx generate-inverted-index.ts",
+    "benchmark" : "npx tsx benchmark-lookup.ts",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
