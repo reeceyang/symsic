@@ -29,7 +29,7 @@ async function importKernFiles() {
     // TODO: ignore duplicates (?)
     // trivial solution is to not push if filename is the same, but filenames could be different
     // and content the same. maybe literally check content.
-    const kernFilesDir = "kern/humdrum-data/.source/musedata";
+    const kernFilesDir = "kern/humdrum-data/.source/";
     const kernFiles = await readKernFilesRecursively(kernFilesDir);
     let insertedCount = 0;
     let maxLength = -1;
