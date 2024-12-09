@@ -5,10 +5,13 @@ import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import KeyboardKey from "./_components/keyboard-key";
 import { PITCH_NAMES } from "./_components/note";
+import { markHumdrum } from "@/common/markHumdrum";
+import { meiToRegex } from "@/common/meiToRegex";
 
 export default function Home() {
   const [selectedScoreId, setSelectedScoreId] = useState<number | null>(null);
   const [svg, setSvg] = useState<string | null>(null);
+  const [meiText, setMeiText] = useState("");
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
 
@@ -19,17 +22,21 @@ export default function Home() {
 
   useEffect(() => {
     if (data?.kernData) {
+      const numVoices = (/\*\*kern/.exec(data.kernData))?.length ?? 0;
+      const humdrum =
+        numVoices === 1
+          ? markHumdrum(data.kernData, meiToRegex(meiText))
+          : data.kernData;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      verovioToolkit.loadData(data.kernData);
+      verovioToolkit.loadData(humdrum);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const svg: string = verovioToolkit.renderToSVG(page, {});
-      console.log("done rendering");
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const newPageCount: number = verovioToolkit.getPageCount();
       setPageCount(newPageCount);
       setSvg(svg);
     }
-  }, [selectedScoreId, data?.kernData, page]);
+  }, [selectedScoreId, data?.kernData, page, meiText]);
 
   return (
     <main className="flex max-h-screen min-h-screen flex-row overflow-clip bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
@@ -44,6 +51,8 @@ export default function Home() {
             setPage(1);
           }}
           selectedScoreId={selectedScoreId}
+          meiText={meiText}
+          setMeiText={setMeiText}
         />
       </div>
       {!svg && (

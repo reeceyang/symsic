@@ -17,9 +17,10 @@ const DEFAULT_INPUT = `<beam>
 export const Search: FC<{
   setSelectedScoreId: (id: number | null) => void;
   selectedScoreId: number | null;
-}> = ({ setSelectedScoreId, selectedScoreId }) => {
+  meiText: string;
+  setMeiText: (meiText: string) => void;
+}> = ({ setSelectedScoreId, selectedScoreId, meiText, setMeiText }) => {
   const [advancedInput, setAdvancedInput] = useState(DEFAULT_INPUT);
-  const [meiText, setMeiText] = useState(``);
   const { data } = api.search.search.useQuery(
     { meiText },
     { enabled: Boolean(meiText) },
