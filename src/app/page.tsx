@@ -22,20 +22,21 @@ export default function Home() {
 
   useEffect(() => {
     if (data?.kernData) {
-      console.log(meiToRegex(meiText));
-      const markedHumdrum = markHumdrum(data.kernData, meiToRegex(meiText));
-      console.log(markedHumdrum);
+      const numVoices = (/\*\*kern/.exec(data.kernData))?.length ?? 0;
+      const humdrum =
+        numVoices === 1
+          ? markHumdrum(data.kernData, meiToRegex(meiText))
+          : data.kernData;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      verovioToolkit.loadData(markedHumdrum);
+      verovioToolkit.loadData(humdrum);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const svg: string = verovioToolkit.renderToSVG(page, {});
-      console.log("done rendering");
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const newPageCount: number = verovioToolkit.getPageCount();
       setPageCount(newPageCount);
       setSvg(svg);
     }
-  }, [selectedScoreId, data?.kernData, page]);
+  }, [selectedScoreId, data?.kernData, page, meiText]);
 
   return (
     <main className="flex max-h-screen min-h-screen flex-row overflow-clip bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">

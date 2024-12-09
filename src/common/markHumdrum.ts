@@ -28,13 +28,13 @@ export const markHumdrum = (humdrumData: string, regexPattern: string) => {
       if (!line) {
         throw new Error("Empty line found.");
       }
-      if (line[0] != ".") {
+      if (!line.startsWith(".")) {
         outputLines[lineIndex] += "@";
       }
     }
   }
   // Remove empty lines (invalid in Humdrum).
-  outputLines = outputLines.filter(function(line) {
+  outputLines = outputLines.filter(function (line) {
     return line != "";
   });
   outputLines.push("!!!RDF**kern: @ = marked note");
