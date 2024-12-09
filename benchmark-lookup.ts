@@ -5,13 +5,14 @@ import { meiToRegex } from "@/common/meiToRegex";
 import { desc, sql } from "drizzle-orm";
 import { generatePatterns } from "pattern-generator";
 import {checkAndReturnPattern, sequentialScan} from "@/server/api/routers/search";
+import fs from 'fs';
 dotenv.config();
 
 async function benchmarkLookup() {
     // this function benchmarks the lookup of each pattern in the db
     const patterns = generatePatterns();
     const regex_patterns = patterns.map((pattern) => meiToRegex(pattern));
-    const report_seq_scan = await sequentialPatternSearch(patterns);
+    const report_seq_scan = await sequentialPatternSearch(regex_patterns);
     const report_inv_index = await invertedIndexPatternSearch(regex_patterns);
     const final_report = {
         sequential_scan: report_seq_scan,
@@ -78,11 +79,12 @@ async function sequentialPatternSearch(patterns: string[]) {
         sum_of_times: 0,
     }
     const medianTracker = new MedianTracker();
+    const match_count_and_time = [];
 
     for (let pattern of patterns) {
         console.log(`searching for pattern ${pattern}`);
         let start = Date.now();
-        let _ = await sequentialScan(pattern, db);
+        let results = await sequentialScan(pattern, db);
         let end = Date.now();
         let time = end - start;
         measurements.min_time = Math.min(measurements.min_time, time);
@@ -90,8 +92,10 @@ async function sequentialPatternSearch(patterns: string[]) {
         measurements.sum_of_times += time;
         measurements.count += 1;
         medianTracker.addNum(time);
+        match_count_and_time.push([pattern, results.length, time]);
     }
 
+    report_to_csv("sequential_scan_report.csv", match_count_and_time);
     const report = {
         min_time: measurements.min_time,
         max_time: measurements.max_time,
@@ -112,11 +116,11 @@ async function invertedIndexPatternSearch(patterns: string[]) {
         sum_of_times: 0,
     }
     const medianTracker = new MedianTracker();
-
+    const match_count_and_time = [];
     for (let pattern of patterns) {
         console.log(`inv index searching for pattern ${pattern}`);
         let start = Date.now();
-        let _ = await checkAndReturnPattern(pattern, db);
+        let results = await checkAndReturnPattern(pattern, db);
         let end = Date.now();
         let time = end - start;
         measurements.min_time = Math.min(measurements.min_time, time);
@@ -124,8 +128,9 @@ async function invertedIndexPatternSearch(patterns: string[]) {
         measurements.sum_of_times += time;
         measurements.count += 1;
         medianTracker.addNum(time);
+        match_count_and_time.push([pattern, results.length, time]);
     }
-
+    report_to_csv("inverted_index_report.csv", match_count_and_time);
     const report = {
         min_time: measurements.min_time,
         max_time: measurements.max_time,
@@ -133,6 +138,15 @@ async function invertedIndexPatternSearch(patterns: string[]) {
         median_time: medianTracker.getMedian(),
     }
     return report;
+}
+
+function report_to_csv(filename: string, match_count_and_time: any) {
+    // this function writes the report to a csv file
+    let csv = "match_count, time_taken\n";
+    for (let [_, match_count, time_taken] of match_count_and_time) {
+        csv += `${match_count}, ${time_taken}\n`;
+    }
+    fs.writeFileSync(filename, csv);
 }
 
 // run the benchmark

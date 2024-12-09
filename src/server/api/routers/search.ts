@@ -50,7 +50,7 @@ export const searchRouter = createTRPCRouter({
 async function sequentialScan(pattern: string, db: any) {
 
     // create a subquery to count num of matches in voices and sum them over kernId
-    const matchesSubquery = db.$with("matches").as(
+    const matchesSubquery = await db.$with("matches").as(
       db
         .select({
           kernId: kernVoices.scoreId,
@@ -87,7 +87,6 @@ async function checkAndReturnPattern(pattern: string, db: any) {
 
   // if it is, find results and join on kernScores to grab the titles
   if (existingPattern != undefined && existingPattern.id != undefined) {
-    console.log("found pattern in db");
     const results = await db.select({
         kernScoreId: kernPatternMatches.kernScoreId,
         title: kernScores.title,
