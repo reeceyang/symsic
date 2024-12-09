@@ -19,6 +19,7 @@ export const markHumdrum = (humdrumData: string, regexPattern: string) => {
   const dataLines = humdrumData.split("\n");
   let outputLines = dataLines.slice();
   let match;
+  const lineIndices = [];
   while ((match = regex.exec(humdrumData)) !== null) {
     console.log("Match!", match.index, regex.lastIndex);
     const startLine = getLineIndex(match.index, dataLines);
@@ -28,15 +29,17 @@ export const markHumdrum = (humdrumData: string, regexPattern: string) => {
       if (!line) {
         throw new Error("Empty line found.");
       }
+      lineIndices.push(lineIndex);
       if (line[0] != ".") {
         outputLines[lineIndex] += "@";
       }
     }
   }
-  // Remove empty lines (invalid in Humdrum).
-  outputLines = outputLines.filter(function(line) {
-    return line != "";
-  });
-  outputLines.push("!!!RDF**kern: @ = marked note");
-  return outputLines.join("\n");
+  return lineIndices;
+  // // Remove empty lines (invalid in Humdrum).
+  // outputLines = outputLines.filter(function (line) {
+  //   return line != "";
+  // });
+  // outputLines.push("!!!RDF**kern: @ = marked note");
+  // return outputLines.join("\n");
 };

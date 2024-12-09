@@ -26,18 +26,36 @@ export default function Home() {
   useEffect(() => {
     if (data?.kernData && voices) {
       console.log(meiToRegex(meiText));
-      const markedVoices = voices.map((voice) =>
-        markHumdrum(voice.voice, meiToRegex(meiText)).split("\n"),
+      const markedLineIndices = voices.map((voice) =>
+        markHumdrum(voice.voice, meiToRegex(meiText)),
       );
-      let combined = "";
-      for (let i = 0; i < markedVoices[0]!.length; i++) {
-        for (let j = 0; j < markedVoices.length; j++) {
-          combined += markedVoices[j]![i] + "\t";
+      const kernStartIndex = data.kernData.indexOf("**kern");
+      const kernEndIndex = data.kernData.lastIndexOf("*-") + "*-".length;
+
+      const scoreData = data.kernData
+        .slice(kernStartIndex, kernEndIndex)
+        .split("\n");
+      const outputLines: string[] = [];
+      scoreData.forEach((line, i) => {
+        if (markedLineIndices.some((indices) => indices.includes(i))) {
+          const spines = line.split("\t");
+          for (let voice = 0; voice < markedLineIndices.length; voice++) {
+            if (markedLineIndices[voice]!.includes(i)) {
+              spines[voice] += "@";
+            }
+          }
+          outputLines.push(spines.join("\t"));
+        } else {
+          outputLines.push(line);
         }
-        combined += "\n";
-      }
+      });
+
+      const marked = outputLines.join("\n");
+
+      console.log(data.kernData);
+      console.log(marked);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const svg: string = verovioToolkit.renderData(combined, {});
+      const svg: string = verovioToolkit.renderData(marked, {});
       console.log("done rendering");
       setSvg(svg);
     }
